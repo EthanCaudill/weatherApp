@@ -1,11 +1,11 @@
 var key = '5f6ae1d97fae3dd16d3552178c112bd6';
 
-// The API gives temp in Kelvin so this converts it to Fahrenheit
+// Converts Kelvin to Fahrenheit
 function convertTemp(k) {
   return Math.round((k - 273.15) * 9/5 + 32);
 }
 
-// main function that runs when the user hits search
+// Fetches location from users input
 async function search() {
   var city = document.getElementById('city').value.trim();
 
@@ -17,7 +17,7 @@ async function search() {
   document.getElementById('error').textContent = '';
   document.getElementById('results').style.display = 'none';
 
-  // OpenWeather uses lat and lon so this takes the city and gets the lat and lon
+  // Converts the city to lat and lon for location
   var locationURL = 'https://api.openweathermap.org/geo/1.0/direct?q=' + encodeURIComponent(city + ',US') + '&limit=1&appid=' + key;
 
   var locationResponse = await fetch(locationURL);
@@ -32,16 +32,15 @@ async function search() {
   var lon = locationData[0].lon;
   var cityName = locationData[0].name + ', ' + (locationData[0].state || locationData[0].country);
 
-  // uses the lat and lon to get the 5 day forecast
+  // Fetch 5-day forecast in 3-hour intervals
   var weatherURL = 'https://api.openweathermap.org/data/2.5/forecast?lat=' + lat + '&lon=' + lon + '&cnt=40&appid=' + key;
 
   var weatherResponse = await fetch(weatherURL);
   var weatherData = await weatherResponse.json();
 
-  // Displays the city and state
   document.getElementById('locationLabel').textContent = cityName;
 
-  // The API sends back data every 3 hours so this groups them by day
+  // Group forecast by day and sets timezone
   var days = {};
   var timezone = weatherData.city.timezone;
 
@@ -56,7 +55,7 @@ async function search() {
     days[dayName].push(item);
   }
 
-  // Goes through each day and prints the highest temp and weather type
+  // Output for each day showing high, current, and low temps
   var outputBox = document.getElementById('forecast');
   outputBox.innerHTML = '';
 
@@ -66,20 +65,34 @@ async function search() {
 
     var times = days[day];
 
-    // Loop through all the temps that day and find the highest one
+    // Find daily high
     var high = convertTemp(times[0].main.temp);
     for (var j = 0; j < times.length; j++) {
       var temp = convertTemp(times[j].main.temp);
-      if (temp > high) {
-        high = temp;
-      }
+      if (temp > high) high = temp;
     }
 
-    // Gets weather type from the middle of the day
+    // Find daily low
+    var low = convertTemp(times[0].main.temp_min);
+    for (var j = 0; j < times.length; j++) {
+      var temp = convertTemp(times[j].main.temp_min);
+      if (temp < low) low = temp;
+    }
+
+    // Use midday entry for current temp and sky condition
     var midDay = times[Math.floor(times.length / 2)];
     var sky = midDay.weather[0].main;
+    var current = convertTemp(midDay.main.temp);
 
-    outputBox.innerHTML += '<div><strong>' + day + '</strong><br>' + high + '°F — ' + sky + '</div>';
+    outputBox.innerHTML += '<div class="day-card">'
+      + '<div class="day-name">' + day + '</div>'
+      + '<div class="day-sky">' + sky + '</div>'
+      + '<div class="day-temps">'
+      + '<span class="temp-high">H: ' + high + '°F</span>'
+      + '<span class="temp-current">Now: ' + current + '°F</span>'
+      + '<span class="temp-low">L: ' + low + '°F</span>'
+      + '</div>'
+      + '</div>';
     count++;
   }
 
@@ -87,11 +100,10 @@ async function search() {
   document.getElementById('resetBtn').style.display = 'inline-block';
 }
 
-// Resets everything so the user can enter a new location
+// Clears the input and lets the user enter a new city
 function reset() {
   document.getElementById('city').value = '';
   document.getElementById('results').style.display = 'none';
   document.getElementById('resetBtn').style.display = 'none';
   document.getElementById('error').textContent = '';
 }
-
