@@ -98,7 +98,7 @@ async function search() {
       + '<div class="day-sky">' + sky + '</div>'
       + '<div class="day-temps">'
       + '<span class="temp-high">H: ' + high + '°F</span>'
-      + '<span class="temp-current">Now: ' + currentHTML + '°F</span>'
+      + currentHTML
       + '<span class="temp-low">L: ' + low + '°F</span>'
       + '</div>'
       + '</div>';
