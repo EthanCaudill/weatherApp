@@ -44,6 +44,9 @@ async function search() {
   var days = {};
   var timezone = weatherData.city.timezone;
 
+  var todayDate = new Date((weatherData.list[0].dt + timezone) * 1000);
+  var todayName = todayDate.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+
   for (var i = 0; i < weatherData.list.length; i++) {
     var item = weatherData.list[i];
     var date = new Date((item.dt + timezone) * 1000);
@@ -84,12 +87,18 @@ async function search() {
     var sky = midDay.weather[0].main;
     var current = convertTemp(midDay.main.temp);
 
+    // Only show "Now" for today
+    var currentHTML = '';
+    if (day === todayName) {
+    currentHTML = '<span class="temp-current">Now: ' + current + '°F</span>';
+    }
+
     outputBox.innerHTML += '<div class="day-card">'
       + '<div class="day-name">' + day + '</div>'
       + '<div class="day-sky">' + sky + '</div>'
       + '<div class="day-temps">'
       + '<span class="temp-high">H: ' + high + '°F</span>'
-      + '<span class="temp-current">Now: ' + current + '°F</span>'
+      + '<span class="temp-current">Now: ' + currentHTML + '°F</span>'
       + '<span class="temp-low">L: ' + low + '°F</span>'
       + '</div>'
       + '</div>';
